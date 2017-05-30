@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+	<!-- 自动扫描且只扫描@Controller -->
+	<context:component-scan base-package="cn.com.coral,cn.com.pubinfo.grid,cn.com.plugin" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+	
+	<mvc:annotation-driven validator="validator">
+		<mvc:message-converters register-defaults="true">
+			<!-- 将StringHttpMessageConverter的默认编码设为UTF-8 -->
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+		    	<constructor-arg value="UTF-8" />
+			</bean>
+			<!-- 将Jackson2HttpMessageConverter的默认格式化输出设为true  -->
+			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                <property name="prettyPrint" value="true"/>
+            </bean>		
+           	
+  		</mvc:message-converters>
+	</mvc:annotation-driven>
+	
+	 <!-- jsp视图解析器 -->
+	<bean id="jspViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+		<property name="prefix" value="/WEB-INF/views"/>
+		<property name="suffix" value=".jsp"/>
+	</bean>		
+	
+	
+	<!-- 容器默认的DefaultServletHandler处理 所有静态内容与无RequestMapping处理的URL	-->
+	<mvc:default-servlet-handler/>
+	
+	<!-- 定义无需Controller的url<->view直接映射 -->
+	<mvc:view-controller path="/" view-name="redirect:/index"/>
+	
+	 <!-- 异常处理机制 -->
+<!--     <bean id="exceptionHandler" class="cn.com.coral.exception.handler.GridExceptionHandler"/>  -->
+    
+	<!-- 指定自己定义的validator 
+	<mvc:annotation-driven validator="validator"/>  
+	-->  
+	<!-- 以下 validator  ConversionService 在使用 mvc:annotation-driven 会 自动注册-->  
+	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">  
+	    <property name="providerClass" value="org.hibernate.validator.HibernateValidator"/>
+	    <!-- 解决在weblogic下部署的validator异常 -->
+<!-- 	    <property name="traversableResolver"> -->
+<!-- 	   		<bean class="cn.com.coral.spring.validation.weblogic.ExtTraversableResolver"></bean> -->
+<!-- 	    </property> -->
+	    <!-- 如果不加默认到 使用classpath下的 ValidationMessages.properties -->  
+	    <property name="validationMessageSource" ref="messageSource"/>  
+	</bean>  
+	  
+	<!-- 国际化的消息资源文件（本系统中主要用于显示/错误消息定制） -->  
+	<bean id="messageSource" class="org.springframework.context.support.ReloadableResourceBundleMessageSource">  
+	    <property name="basenames">  
+	        <list>  
+	            <!-- 在web环境中一定要定位到classpath 否则默认到当前web应用下找  -->  
+	            <value>classpath:messages</value>  
+	            <value>classpath:org/hibernate/validator/ValidationMessages</value>  
+	        </list>  
+	    </property>  
+	    <property name="useCodeAsDefaultMessage" value="false"/>  
+	    <property name="defaultEncoding" value="UTF-8"/>  
+	    <property name="cacheSeconds" value="60"/>  
+	</bean>  
+	
+</beans>
